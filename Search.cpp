@@ -12,6 +12,12 @@ bool starts_with_lowercase(string element){
     return false;
 }
 
+// Implementing closure
+std::function<bool(std::string)> checkStringStartWithAny(std::string startString){
+    std::function<bool(std::string)> predicateFuncObj = [&](std::string stringItem) { return stringItem.starts_with(startString); }
+    return predicateFuncObj;
+}
+
 vector<string> filter(vector<string>& arr, function<bool(const string&)> criteria){
     vector<string> result;
     for(const auto &element: arr){
@@ -33,6 +39,10 @@ int main()
 {
     
     vector<string> arr = {"abc", "qwerty","Xyz"};
+    // Written for closure
+    std::function<bool(std::string)> startswithA = checkStringStartWithAny("A");
+    std::vector<std::string> filterStartWithA = filter(arr, startswithA);
+    
     display_result(arr);
     return 0;
 }
