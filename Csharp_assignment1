@@ -1,40 +1,66 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
-public class Required : System.Attribute
+[AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+public abstract class ValidationAtrribute : System.Attribute
 {
     public string ErrorMessage { get; set; }
+
+    public abstract bool IsValid(object value);
+
+
 }
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
-public class Range: System.Attribute
+public class RequiredAttribute : ValidationAtrribute
 {
-    private ushort start;
-    private ushort end;
+    public override bool IsValid(object value)
+    {
+        return value != null;
+    }
+}
 
-    public Range(ushort start, ushort end)
+public class RangeAttribute : ValidationAtrribute
+{
+    private int start;
+    private int end;
+
+    public RangeAttribute(int start, int end)
     {
         this.start = start;
         this.end = end;
     }
 
-    public string ErrorMessage { get; set; }
+    public override bool IsValid(object value)
+    {
+        if (value == null || !int.TryParse(value.ToString(), out int intvalue))
+            return false;
+
+        return intvalue >= start && intvalue <= end;
+    }
 }
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
-public class MaxLength : System.Attribute
+public class MaxLengthAttribute : ValidationAtrribute
 {
-    private ushort maxlen;
+    private int maxlen;
 
-    public MaxLength(ushort maxlen)
+    public MaxLengthAttribute(int maxlen)
     {
         this.maxlen = maxlen;
     }
-    public string ErrorMessage { get; set; }
+
+    public override bool IsValid(object value)
+    {
+        if(value == null)
+            return false;
+
+        int intvalue = value.ToString().Length;
+        return intvalue <= maxlen;
+    }
 }
 class Device
 {
@@ -53,24 +79,30 @@ class Device
 class ObjectValidator
 {
 
-    public bool Validate(Device deviceobj, out List<string> errorList)
+    public static bool Validate(Device deviceobj, out List<string> errorList)
     {
         errorList = new List<string>();
-        Device deviceObj = new Device();
-        if (!Required(deviceObj.Id, new Required(), out string idError))
+        
+        System.Type type = deviceobj.GetType();
+        System.Reflection.PropertyInfo[] properties = type.GetProperties();
+        foreach (System.Reflection.PropertyInfo property in properties)
         {
-            errorList.Add($"ID: {idError}");
+            Object[] customAttributes = property.GetCustomAttributes(typeof(ValidationAtrribute), true);
+            foreach (Object attribute in customAttributes)
+            {
+                Object propertyValue = property.GetValue(deviceobj);
+                ValidationAtrribute valAttribute = attribute as ValidationAtrribute;    // Down-casting
+                if(valAttribute != null)
+                {
+                    if (!valAttribute.IsValid(propertyValue))
+                    {
+                        string error = valAttribute.ErrorMessage;
+                        errorList.Add($"{error}");
+                    }
+                }
+            }
         }
-
-        if (!Range(deviceObj.Code, new Range(10,100), out string codeError))
-        {
-            errorList.Add($"Code: {codeError}");
-        }
-
-        if (!MaxLength(deviceObj.Description, new MaxLength(100), out string lengthError))
-        {
-            errorList.Add($"Length: {lengthError}");
-        }
+        return errorList.Count == 0;
     }
 }
 
