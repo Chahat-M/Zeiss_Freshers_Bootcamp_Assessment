@@ -26,14 +26,22 @@ public class Scanner : IScanner
 
 public class PrintScanner : IPrinter, IScanner
 {
+    private readonly IPrinter printer;
+    private readonly IScanner scanner;
+
+    public PrintScanner()
+    {
+        this.printer = new Printer();
+        this.scanner = new Scanner();
+    }
     public void Print(string path)
     {
-        System.Console.WriteLine($"Printing from PrintScanner .....{path}");
+       printer.Print(path);
     }
 
     public void Scan(string path)
     {
-        System.Console.WriteLine($"Scanning from PrintScanner .....{path}");
+        scanner.Scan(path);
     }
 }
 public static class TaskManager
