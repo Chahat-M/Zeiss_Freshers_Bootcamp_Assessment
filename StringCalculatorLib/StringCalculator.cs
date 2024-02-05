@@ -7,19 +7,21 @@ public class StringCalculator
 {
     public static int Add(string numbers)
     {
+        return AddNumbers(ParseNumbers(numbers));
+    }
+
+    private static List<int> ParseNumbers(string numbers)
+    {
         if (string.IsNullOrEmpty(numbers))
         {
-            return 0;
+            return new List<int>();
         }
 
         string delimiter = GetDelimiter(numbers);
         string[] numberArray = SplitNumbers(numbers, delimiter);
-
-        ValidateInputFormat(numberArray);
-
         ValidateNegatives(numberArray);
 
-        return IgnoreLargerNumbers(numberArray);
+        return numberArray.Select(int.Parse).Where(x => x <= 1000).ToList();
     }
 
     private static string GetDelimiter(string numbers)
@@ -40,14 +42,6 @@ public class StringCalculator
         return Regex.Split(numbers, delimiter);
     }
 
-    private static void ValidateInputFormat(string[] numberArray)
-    {
-        if (numberArray.Length == 2 && string.IsNullOrWhiteSpace(numberArray[1]))
-        {
-            throw new Exception("Invalid input format");
-        }
-    }
-
     private static void ValidateNegatives(string[] numberArray)
     {
         List<int> negativeNumbers = numberArray.Select(int.Parse).Where(x => x < 0).ToList();
@@ -57,11 +51,8 @@ public class StringCalculator
         }
     }
 
-    private static int IgnoreLargerNumbers(string[] numberArray)
+    private static int AddNumbers(List<int> numbers)
     {
-        List<int> numbers = numberArray.Select(int.Parse).Where(x => x <= 1000).ToList();
         return numbers.Sum();
     }
-
 }
-
