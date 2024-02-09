@@ -5,5 +5,8 @@ For CalculateTotalPrice(string items) -
 2. Given "A" then 50
 3. Given "AB" then 80
 4. Given "ABA" then 130
-5. Given "DBCB" then 80
-6. Given "BBBB" then 90
+5. Given "DBC" then 65
+6. Given "DBCB" then 80
+7. Given "ACAA" then 150 
+8. Given "BBBB" then 90
+9. Given "AACBAA" then 230
